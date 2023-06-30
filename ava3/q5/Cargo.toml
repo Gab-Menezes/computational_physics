@@ -1,0 +1,20 @@
+cargo-features = ["profile-rustflags"]
+
+[package]
+name = "q5"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+plotters = "0.3.5"
+rayon = "1.7.0"
+
+[profile.release]
+debug = 2
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+incremental = false
+rustflags = ["-C", "target-cpu=native", "-Z", "tune-cpu=native"]

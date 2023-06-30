@@ -1,0 +1,64 @@
+#![feature(maybe_uninit_uninit_array)]
+#![feature(maybe_uninit_array_assume_init)]
+use std::time::Instant;
+
+use plotters::prelude::*;
+
+fn main() {
+    let root = BitMapBackend::new("output/mandel.png", (1920*4, 1080*4)).into_drawing_area();
+
+    root.fill(&WHITE).unwrap();
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption("Mandelbrot set", ("sans-serif", 30).into_font())
+        .margin(10)
+        .x_label_area_size(60)
+        .y_label_area_size(60)
+        .build_cartesian_2d(-2f32..2f32, -2f32..2f32)
+        .unwrap();
+
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .disable_y_mesh()
+        .draw()
+        .unwrap();
+
+    let plotting_area = chart.plotting_area();
+    let range = plotting_area.get_pixel_range();
+
+    let (width, height) = (range.0.end - range.0.start, range.1.end - range.1.start);
+    let (real, complex) = (chart.x_range(), chart.y_range());
+
+    const MAX_ITERS: u32 = 8_192u32*4;
+    const MAX_MAG: f32 = 2f32;
+
+    let step = (
+        (real.end - real.start) / width as f32,
+        (complex.end - complex.start) / height as f32,
+    );
+
+    let begin = Instant::now();
+    for i in 0..width {
+        let c_real = real.start + step.0 * i as f32;
+        for j in 0..height {
+            let c = (c_real, complex.start + step.1 * j as f32);
+            let mut z = (0.0, 0.0);
+            let mut iters = 0u32;
+            while z.0 * z.0 + z.1 * z.1 <= MAX_MAG && iters < MAX_ITERS {
+                z = (z.0 * z.0 - z.1 * z.1 + c.0, 2.0 * z.0 * z.1 + c.1);
+                iters += 1;
+            }
+            
+            if iters == MAX_ITERS {
+                plotting_area.draw_pixel(c, &BLACK).unwrap();
+            } else {
+                plotting_area.draw_pixel(c, &WHITE).unwrap();
+            }
+        }
+    }
+    let elapsed = begin.elapsed().as_millis();
+    println!("{elapsed}");
+
+    root.present().unwrap();
+}
