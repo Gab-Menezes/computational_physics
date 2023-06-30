@@ -108,58 +108,54 @@ fn main() {
 
         root.present().unwrap();
     }
-
     {
-        let mut zipped = eval.iter().zip(evec.row_iter()).collect::<Vec<_>>();
+        let mut zipped = eval.iter().zip(evec.column_iter()).collect::<Vec<_>>();
         zipped.sort_unstable_by(|(v1, _), (v2, _)| v1.partial_cmp(v2).unwrap());
 
-        for (zipped, case) in [
-            (&zipped[..5], "lower"),
-            (&zipped[NUM_BODIES - 5..], "upper"),
+        for zipped in [
+            &zipped[..5],
+            &zipped[NUM_BODIES - 5..],
         ] {
-            let x_range = 0usize..NUM_BODIES;
-            let y_range = -0.2f32..0.2f32;
+            for (val, vec) in zipped.iter() {
+                let x_range = 0usize..NUM_BODIES;
+                let y_range = (vec.min() - 0.1f32)..(vec.max() + 0.1f32);
+                let name = format!("output/relative-displacement-{NUM_BODIES}-{val}.png");
+                let root = BitMapBackend::new(&name, (1920, 1080)).into_drawing_area();
+                root.fill(&WHITE).unwrap();
+                let mut chart = ChartBuilder::on(&root)
+                    .caption(format!("Relative Displacement"), ("sans-serif", 30).into_font())
+                    .margin(10)
+                    .x_label_area_size(60)
+                    .y_label_area_size(60)
+                    .build_cartesian_2d(x_range, y_range)
+                    .unwrap();
 
-            let name = format!("output/relative-displacement-{case}-{NUM_BODIES}.png");
-            let root = BitMapBackend::new(&name, (1920, 1080)).into_drawing_area();
-            root.fill(&WHITE).unwrap();
-            let mut chart = ChartBuilder::on(&root)
-                .caption("Relative Displacement", ("sans-serif", 30).into_font())
-                .margin(10)
-                .x_label_area_size(60)
-                .y_label_area_size(60)
-                .build_cartesian_2d(x_range, y_range)
-                .unwrap();
-
-            chart
-                .configure_mesh()
-                .x_desc("idx")
-                .y_desc("Relative Displacement")
-                .axis_desc_style(("sans-serif", 20))
-                .draw()
-                .unwrap();
-
-            let colors = &[RED, BLUE, GREEN, BLACK, MAGENTA];
-
-            for ((val, vec), color) in zipped.iter().zip(colors) {
                 chart
-                    .draw_series(LineSeries::new(
-                        vec.iter().enumerate().map(|(i, v)| (i, *v)),
-                        color,
-                    ))
-                    .unwrap()
-                    .label(val.to_string())
-                    .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], *color));
+                    .configure_mesh()
+                    .x_desc("idx")
+                    .y_desc("Relative Displacement")
+                    .axis_desc_style(("sans-serif", 20))
+                    .draw()
+                    .unwrap();
+
+                    chart
+                        .draw_series(LineSeries::new(
+                            vec.iter().enumerate().map(|(i, v)| (i, *v)),
+                            RED,
+                        ))
+                        .unwrap()
+                        .label(val.to_string())
+                        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], RED));
+                    
+                    chart
+                    .configure_series_labels()
+                    .background_style(WHITE.mix(0.8))
+                    .border_style(BLACK)
+                    .draw()
+                    .unwrap();
+                
+                root.present().unwrap();
             }
-
-            chart
-                .configure_series_labels()
-                .background_style(WHITE.mix(0.8))
-                .border_style(BLACK)
-                .draw()
-                .unwrap();
-
-            root.present().unwrap();
         }
     }
 }
