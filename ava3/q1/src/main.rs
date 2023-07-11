@@ -52,9 +52,6 @@ fn main() {
 
     let springs = repeat_slice![(K1; NUM_BODIES/2 - 2), (K2; 2), (K1; NUM_BODIES/2 - 1)];
     let mut matrix = SMatrix::<f32, NUM_BODIES, NUM_BODIES>::zeros();
-    let mut m = DMatrix::<u32>::zeros(3, 2);
-    m[(0, 1)] = 1;
-
 
     assert_eq!(NUM_BODIES - 1, springs.len());
 
