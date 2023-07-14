@@ -1,5 +1,5 @@
 from numpy import zeros, random
-N = 50
+N = 10
 C = zeros([N,N],float)
 A = random.rand(N,N)
 B = random.rand(N,N)
