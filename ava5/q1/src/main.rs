@@ -103,7 +103,7 @@ fn adaptive_simpson(
     t *= 2f32 / 3f32;
     let mut result = step * (s + 2f32 * t);
 
-    println!("slices: {slices:4} | e: {:10} | integral: {result:4.8}", "");
+    println!("slices: {slices:4} | e: {:10} | adaptive simpson: {result:4.8}", "");
 
     loop {
         slices *= 2;
@@ -117,7 +117,7 @@ fn adaptive_simpson(
         let new_result = step * (new_s + 2f32 * new_t);
         let epsilon = ((new_result - result) / 15f32).abs();
 
-        println!("slices: {slices:4} | e: {epsilon:.8} | integral: {new_result:4.8}");
+        println!("slices: {slices:4} | e: {epsilon:.8} | adaptive simpson: {new_result:4.8}");
 
         if epsilon < precision {
             return new_result;
@@ -198,6 +198,12 @@ fn romberg(g: &impl Fn(f32) -> f32, x_range: Range<f32>, precision: f32) -> f32 
 //     }
 // }
 
+// q1.e
+// fn main() {
+//     let x_range = 0f32..2f32;
+//     adaptive_simpson(q1, x_range, 2, 1e-6);
+// }
+
 // q2.b.a,b,c
 // fn main() {
 //     let actual = 4.4f32;
@@ -217,23 +223,18 @@ fn romberg(g: &impl Fn(f32) -> f32, x_range: Range<f32>, precision: f32) -> f32 
 //     }
 // }
 
-// q1.e
+// q3.a,b,c
 // fn main() {
-//     let x_range = 0f32..2f32;
-//     adaptive_simpson(q1, x_range, 2, 1e-6);
-// }
-
-// q3.b,c
-// fn main() {
+//     let actual = 0.50285f32;
 //     let x_range = 0f32..1f32;
 //     for slices in &[10u32, 100, 1000] {
 //         let trapezoid = trapezoid(q3, x_range.clone(), *slices);
 //         let simp = simpson(q3, x_range.clone(), *slices);
 //         println!(
-//             "slices: {slices:3} | trapezoid: {trapezoid}",
+//             "slices: {slices:3} | e: {:.8} | trapezoid: {trapezoid}", trapezoid - actual
 //         );
 //         println!(
-//             "slices: {slices:3} | simpson: {simp}",
+//             "slices: {slices:3} | e: {:.8} | simpson: {simp}", simp - actual
 //         );
 //         println!("----------------");
 //     }
@@ -251,17 +252,18 @@ fn romberg(g: &impl Fn(f32) -> f32, x_range: Range<f32>, precision: f32) -> f32 
 //     romberg(&q3, x_range, 1e-6);
 // }
 
-// q4.b,c
+// q4.a,b,c
 // fn main() {
+//     let actual = 0.54417f32;
 //     let x_range = 0f32..1f32;
 //     for slices in &[10u32, 100, 1000] {
 //         let trapezoid = trapezoid(q4, x_range.clone(), *slices);
 //         let simp = simpson(q4, x_range.clone(), *slices);
 //         println!(
-//             "slices: {slices:3} | trapezoid: {trapezoid}",
+//             "slices: {slices:3} | e: {:.8} | trapezoid: {trapezoid}", trapezoid - actual
 //         );
 //         println!(
-//             "slices: {slices:3} | simpson: {simp}",
+//             "slices: {slices:3} | e: {:.8} | simpson: {simp}", simp - actual
 //         );
 //         println!("----------------");
 //     }
@@ -274,7 +276,7 @@ fn romberg(g: &impl Fn(f32) -> f32, x_range: Range<f32>, precision: f32) -> f32 
 // }
 
 // q4.e
-// fn main() {
-//     let x_range = 0f32..1f32;
-//     romberg(&q4, x_range, 1e-6);
-// }
+fn main() {
+    let x_range = 0f32..1f32;
+    romberg(&q4, x_range, 1e-6);
+}
