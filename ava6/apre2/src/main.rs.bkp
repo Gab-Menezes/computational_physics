@@ -1,0 +1,79 @@
+use std::{
+    f64::consts::{E, PI},
+    io::{stdin, stdout, Write},
+    ops::Range,
+};
+
+fn simpson(g: impl Fn(f64) -> f64, x_range: Range<f64>, slices: u32) -> f64 {
+    let step = (x_range.end - x_range.start) / slices as f64;
+    let start = g(x_range.start) + g(x_range.end);
+    let sum = (1..slices).fold(start, |acc, i| {
+        let fac = if i % 2 == 0 { 2f64 } else { 4f64 };
+        acc + fac * g(x_range.start + i as f64 * step)
+    });
+    sum * step * 1f64 / 3f64
+}
+
+fn read_float() -> f64 {
+    let mut buffer = String::new();
+    stdin().read_line(&mut buffer).unwrap();
+    let buffer = buffer.trim();
+    let r = buffer.parse().unwrap();
+    if r < 0f64 {
+        panic!("Invalid Float");
+    }
+    r
+}
+
+fn charge_desisty(r: f64) -> f64 {
+    (100f64 * r).sin().powi(2) * r.sqrt()
+}
+
+// When integrated gives the cynlinder charge
+fn cylinder_charge_integrand(r: f64, h: f64) -> f64 {
+    // When mutiplied by dr gives the cylinder volume
+    let surface = 2f64 * PI * r * h;
+    charge_desisty(r) * surface
+}
+
+fn eletric_field(charge: f64, point_r: f64, h: f64) -> f64 {
+    const E_0: f64 = 8.854187e-12f64;
+    charge / (E_0 * 2f64 * PI * point_r * h)
+}
+
+fn main() {
+    print!("Cylinder Radius: ");
+    stdout().flush().unwrap();
+    // let cylinder_r = read_float();
+    let cylinder_r = 0.5f64;
+    println!("");
+
+    print!("Cylinder Height: ");
+    stdout().flush().unwrap();
+    // let h = read_float();
+    let h = 1f64;
+    println!("");
+
+    print!("Point Distance: ");
+    stdout().flush().unwrap();
+    // let point_r = read_float();
+    let point_r = 1e6f64;
+    println!("");
+
+    println!("");
+    println!("Calulating with:");
+    println!("\tR = {cylinder_r} m");
+    println!("\tH = {h} m");
+    println!("\tP = {point_r} m");
+    println!("");
+
+    let integration_rage = 0f64..cylinder_r.min(point_r);
+    for slices in [1, 10, 100, 1_000, 10_000] {
+        let f = |x| cylinder_charge_integrand(x, h);
+        let charge = simpson(f, integration_rage.clone(), slices);
+        let field = eletric_field(charge, point_r, h);
+        println!("({slices:5}) Charge:         {charge:.6} C");
+        println!("({slices:5}) Electric Field: {field:.6} N/C");
+        println!("----------------------------------------------");
+    }
+}
