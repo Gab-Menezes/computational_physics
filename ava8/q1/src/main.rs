@@ -1,18 +1,33 @@
 #![feature(generic_arg_infer)]
 use nalgebra::*;
 
+const N: usize = 8;
+const SUBSCRIPT: u32 = 0x2080;
+
+fn eig(matrix: SMatrix<f32, N, N>) -> (SMatrix<f32, N, 1>, SMatrix<f32, N, N>) {
+    let mut acc = matrix.clone();
+    let mut evec = SMatrix::<f32, N, N>::identity();
+    for _ in 0..1_000_000 {
+        let qr = acc.qr();
+        let q = qr.q();
+        acc = qr.r() * q;
+        evec *= q;
+    }
+    let eval = acc.diagonal();
+
+    (eval, evec)
+}
+
 fn main() {
-    const N: usize = 8;
-    const SUBSCRIPT: u32 = 0x2080;
     let slice = &[        
-        0f32,-2.75f32,0f32,0f32,-2.25f32,0f32,0f32,0f32,
-        -2.75f32,0f32,-2.25f32,0f32,0f32,0f32,0f32,0f32,
-        0f32,-2.25f32,0f32,-2.25f32,0f32,-2.75f32,0f32,0f32,
-        0f32,0f32,-2.25f32,0f32,-2.75f32,0f32,0f32,-2.25f32,
-        -2.25f32,0f32,0f32,-2.75f32,0f32,0f32,0f32,0f32,
-        0f32,0f32,-2.75f32,0f32,0f32,0f32,-2.25f32,0f32,
-        0f32,0f32,0f32,0f32,0f32,-2.25f32,0f32,-2.75f32,
-        0f32,0f32,0f32,-2.25f32,0f32,0f32,-2.75f32,0f32
+        0f32    , -2.75f32,  0f32   ,  0f32   , -2.25f32,  0f32   ,  0f32   ,  0f32,
+        -2.75f32,  0f32   , -2.25f32,  0f32   ,  0f32   ,  0f32   ,  0f32   ,  0f32,
+        0f32    , -2.25f32,  0f32   , -2.25f32,  0f32   , -2.75f32,  0f32   ,  0f32,
+        0f32    ,  0f32   , -2.25f32,  0f32   , -2.75f32,  0f32   ,  0f32   , -2.25f32,
+        -2.25f32,  0f32   ,  0f32   , -2.75f32,  0f32   ,  0f32   ,  0f32   ,  0f32,
+        0f32    ,  0f32   , -2.75f32,  0f32   ,  0f32   ,  0f32   , -2.25f32,  0f32,
+        0f32    ,  0f32   ,  0f32   ,  0f32   ,  0f32   , -2.25f32,  0f32   , -2.75f32,
+        0f32    ,  0f32   ,  0f32   , -2.25f32,  0f32   ,  0f32   , -2.75f32,  0f32
     ];
     let bondings = &[
         (0usize, 1usize),
@@ -26,6 +41,8 @@ fn main() {
         (7, 3),
     ];
     let secular_determinant = SMatrix::<f32, N, N>::from_row_slice(slice);
+
+    // using LAPACK
     let e = nalgebra_lapack::Eigen::new(secular_determinant, false, true).unwrap();
     let eval = &e.eigenvalues_re;
     let evec = e
@@ -33,6 +50,10 @@ fn main() {
         .as_ref()
         .unwrap()
         .as_view::<Const<_>, Const<_>, Const<_>, Const<_>>();
+
+    // using QR
+    // let (eval, evec) = eig(secular_determinant);
+
 
     println!("Molecular Orbitals Energy Levels (Eigenvalues):");
     println!("{eval}");
@@ -72,7 +93,7 @@ fn main() {
 
     println!("");
 
-    println!("Boding Order:");
+    println!("Bonding Order:");
     for (i, j) in bondings {
         let mut v = 0f32;
         for (_, vec) in zipped.iter().take(4) {
